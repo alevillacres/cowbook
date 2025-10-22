@@ -1,0 +1,14 @@
+Interfaccia web di configurazione per cowbook:
+- sistema di drag and drop per configurazione video
+- sistema di check per safaty constraints dei video
+Interfaccia di visualizzazione per cowbook:
+- creazione di video annotati da video piu annotazioni separate
+- successivamente si puo provare a fare in live
+Requisiti di comunicazione:
+- il client deve eseguire le richieste API al server di inferenza
+- il client deve ricevere gli output del modello
+Requisiti di containerizzazione:
+- creare un immagine/servizio docker per il web server del client
+- creare un container per il server di inferenza
+Requisiti di documentazione:
+- fornire una documentazione appropiata anche accessibile a utenti non tecnici (per il client)
