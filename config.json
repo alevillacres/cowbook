@@ -24,11 +24,11 @@
             }
         ]
     ],
-    "num_plot_workers": 8,
-    "num_tracking_workers": 4,
+    "num_plot_workers": 2,
+    "num_tracking_workers": 1,
     "output_image_format": "jpg",
-    "convert_to_csv": true,
-    "save_tracking_video": false,
-    "create_projection_video": true,
+    "convert_to_csv": false,
+    "save_tracking_video": true,
+    "create_projection_video": false,
     "fps": 6
 }

@@ -2,13 +2,12 @@ import logging
 import json
 import shutil
 import tempfile
-from logging import Logger
 from pathlib import Path
 from typing import List
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.staticfiles import StaticFiles
 # Import dai moduli del tuo progetto
 # Assicurati che questo file sia nella root del progetto (vicino a group_processor.py)
 from group_processor import process_video_group as run_algorithm
@@ -36,10 +35,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+OUTPUT_VIDEO_PATH = "output_videos"
+app.mount("/static_videos", StaticFiles(directory=OUTPUT_VIDEO_PATH), name="static_videos")
 
 @app.post("/")
 async def process_videos(videos:List[UploadFile] = File(...),
-                              indices: List[str] = Form(...),):
+                         indices: List[str] = Form(...),
+                         tracking_video: List[str] = Form(...),
+                         projection_video: List[str] = Form(...)
+                         ):
+    save_tracking = str(tracking_video[0]).lower() == "true"
+    save_projection = str(projection_video[0]).lower() == "true"
+    print("savetrackingvideo: ", save_tracking)
+    print("projectionvideo: ", save_projection)
+
     BASE_DIR = Path(__file__).resolve().parent
     BASE_CONFIGURATION = load_config(BASE_DIR / "config.json")
     MODEL_PATH = BASE_DIR / "models/yolov11_best.pt"
@@ -50,12 +59,15 @@ async def process_videos(videos:List[UploadFile] = File(...),
         output_frames = Path(tmp_dir) / "output_frames"
         output_jsons = Path(tmp_dir) / "output_jsons"
 
+
         input_path.mkdir(parents=True, exist_ok=True)
         output_frames.mkdir(parents=True, exist_ok=True)
         output_jsons.mkdir(parents=True, exist_ok=True)
 
+
         dynamic_group = []
 
+        #lista indici come string
         real_indices = []
         for item in indices:
             if "," in item:
@@ -75,7 +87,7 @@ async def process_videos(videos:List[UploadFile] = File(...),
             if 0 <= idx < len(CAMERA_MAPPING):
                 # Se è 0->1, 1->4, 2->6, 3->8
                 legacy_camera_id = CAMERA_MAPPING[idx]
-
+            # dove verrà caricato il video del utente
             dest_path = Path(input_path) / f"cam_{legacy_camera_id}.mp4"
 
             try:
@@ -99,9 +111,8 @@ async def process_videos(videos:List[UploadFile] = File(...),
         run_config["model_path"] = str(MODEL_PATH)
         run_config["output_json_folder"] = str(output_jsons)
         run_config["output_image_folder"] = str(output_frames)
-        # Disabilita output pesanti per velocità API
-        run_config["save_tracking_video"] = False
-        run_config["create_projection_video"] = False
+        run_config["save_tracking_video"] = tracking_video
+        run_config["create_projection_video"] = projection_video
 
 
         try:
@@ -126,6 +137,8 @@ async def process_videos(videos:List[UploadFile] = File(...),
 
                     # 2. Estraiamo il numero della cam (se non è merged)
                     cam_id = None
+                    video_name = j_file.name.replace(".json", ".avi")
+                    tracking_url = f"/static_videos/{video_name}"
                     if not is_merged:
                         # Cerchiamo il numero dopo "cam_" nel nome del file
                         import re
@@ -138,7 +151,9 @@ async def process_videos(videos:List[UploadFile] = File(...),
                         "filename": j_file.name,
                         "is_merged": is_merged,
                         "cam_id": cam_id,  # Questo sarà 1, 4, 6 o 8
-                        "data": data
+                        "tracking_video_url": tracking_url,
+                        "data": data,
+
                     })
 
             return {"status": "success", "results": response_data}
