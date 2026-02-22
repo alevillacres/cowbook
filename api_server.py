@@ -151,7 +151,6 @@ async def process_videos(videos:List[UploadFile] = File(...),
                         "filename": j_file.name,
                         "is_merged": is_merged,
                         "cam_id": cam_id,  # Questo sarà 1, 4, 6 o 8
-
                         "data": data,
 
                     })
