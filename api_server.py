@@ -29,7 +29,7 @@ origins = [
 # Configurazione CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -151,7 +151,7 @@ async def process_videos(videos:List[UploadFile] = File(...),
                         "filename": j_file.name,
                         "is_merged": is_merged,
                         "cam_id": cam_id,  # Questo sarà 1, 4, 6 o 8
-                        "tracking_video_url": tracking_url,
+
                         "data": data,
 
                     })
