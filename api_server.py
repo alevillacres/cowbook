@@ -22,14 +22,15 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Cowbook Processing API")
 
 origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:8000"
+    "http://localhost:5173",      # Frontend Vite (se aperto come localhost)
+    "http://127.0.0.1:5173",      # Frontend Vite (se aperto come IP locale)
+    "http://localhost:8000",      # Chiamate interne o da Swagger UI
+    "http://127.0.0.1:8000"       # Chiamate interne o da Swagger UI
 ]
 # Configurazione CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -41,13 +42,7 @@ app.mount("/static_videos", StaticFiles(directory=OUTPUT_VIDEO_PATH), name="stat
 @app.post("/")
 async def process_videos(videos:List[UploadFile] = File(...),
                          indices: List[str] = Form(...),
-                         tracking_video: List[str] = Form(...),
-                         projection_video: List[str] = Form(...)
                          ):
-    save_tracking = str(tracking_video[0]).lower() == "true"
-    save_projection = str(projection_video[0]).lower() == "true"
-    print("savetrackingvideo: ", save_tracking)
-    print("projectionvideo: ", save_projection)
 
     BASE_DIR = Path(__file__).resolve().parent
     BASE_CONFIGURATION = load_config(BASE_DIR / "config.json")
@@ -111,8 +106,6 @@ async def process_videos(videos:List[UploadFile] = File(...),
         run_config["model_path"] = str(MODEL_PATH)
         run_config["output_json_folder"] = str(output_jsons)
         run_config["output_image_folder"] = str(output_frames)
-        run_config["save_tracking_video"] = tracking_video
-        run_config["create_projection_video"] = projection_video
 
 
         try:
