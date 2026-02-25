@@ -106,6 +106,7 @@ async def process_videos(videos:List[UploadFile] = File(...),
         run_config["model_path"] = str(MODEL_PATH)
         run_config["output_json_folder"] = str(output_jsons)
         run_config["output_image_folder"] = str(output_frames)
+        run_config["keep_raw_json"] = "true"
 
 
         try:
@@ -121,6 +122,8 @@ async def process_videos(videos:List[UploadFile] = File(...),
             response_data = []
             json_files = list(output_jsons.glob("*.json"))
 
+            print("List of JSON files:")
+            print(*(f.name for f in json_files), sep="\n")
             for j_file in json_files:
                 with open(j_file, "r") as f:
                     data = json.load(f)
@@ -128,11 +131,14 @@ async def process_videos(videos:List[UploadFile] = File(...),
                     # 1. Identifichiamo se è il file "merged" (quello globale)
                     is_merged = "merged" in j_file.name
 
+                    # Vogliamo solo i json raw, non processed
+                    is_not_processed = "processed" not in j_file.name
+
                     # 2. Estraiamo il numero della cam (se non è merged)
                     cam_id = None
                     video_name = j_file.name.replace(".json", ".avi")
                     tracking_url = f"/static_videos/{video_name}"
-                    if not is_merged:
+                    if not is_merged and is_not_processed:
                         # Cerchiamo il numero dopo "cam_" nel nome del file
                         import re
                         match = re.search(r"cam_(\d+)", j_file.name)

@@ -30,5 +30,6 @@
     "convert_to_csv": false,
     "save_tracking_video": true,
     "create_projection_video": false,
+    "keep_raw_json": true,
     "fps": 6
 }
